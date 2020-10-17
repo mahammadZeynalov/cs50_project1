@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Button, Vibration } from 'react-native';
 
-const screen = Dimensions.get('window');
 const formatNumber = number => `0${number}`.slice(-2);
 const getRemaining = (time) => {
   const mins = Math.floor(time / 60);
@@ -13,11 +12,25 @@ export default function App() {
 
   const [remainingSecs, setRemainingSecs] = useState(1500);
   const [isActive, setIsActive] = useState(false);
+  const [session, setSession] = useState('Work');
   const { mins, secs } = getRemaining(remainingSecs);
 
   const toggle = () => {
     setIsActive(!isActive);
   }
+
+  useEffect(() => {
+    if (!remainingSecs) {
+      Vibration.vibrate([500, 500, 500])
+      if (session === 'Work') {
+        setSession('Break');
+        setRemainingSecs(300);
+      } else {
+        setSession('Work');
+        setRemainingSecs(1500)
+      }
+    }
+  }, [remainingSecs])
 
   useEffect(() => {
     let interval = null;
@@ -32,18 +45,17 @@ export default function App() {
   }, [isActive, remainingSecs])
 
   const reset = () => {
-    setRemainingSecs(0);
+    setRemainingSecs(1500)
     setIsActive(false);
   }
   return (
     <View style={styles.container}>
+      <Text style={styles.sessionText}>{session}</Text>
       <Text style={styles.timerText}>{`${mins}:${secs}`}</Text>
-      <TouchableOpacity onPress={toggle} style={styles.button}>
-        <Text style={styles.buttonText}>{isActive ? 'Pause' : 'Start'}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={reset} style={styles.button}>
-        <Text style={styles.buttonText}>Reset</Text>
-      </TouchableOpacity>
+      <View style = {styles.buttonGroup}>
+      <Button onPress={toggle} title={isActive ? 'Pause' : 'Start'} color='#B83B5E' />
+      <Button onPress={reset} title='Reset' color='#6a2c70' />
+      </View>
     </View>
   );
 }
@@ -55,22 +67,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  button: {
-    borderWidth: 10,
-    borderColor: 'blue',
-    width: screen.width / 2,
-    height: screen.width / 2,
-    borderRadius: screen.width / 2,
-    alignItems: 'center',
+  buttonGroup: {
+    flexDirection: 'row',
     justifyContent: 'center'
   },
-  buttonText: {
-    fontSize: 45,
-    color: 'red'
-  },
   timerText: {
-    color: 'green',
+    color: '#EF8A5D',
     fontSize: 90,
     marginBottom: 20
+  },
+  sessionText: {
+    fontSize: 35,
+    color: '#6a2c70'
   }
 });
